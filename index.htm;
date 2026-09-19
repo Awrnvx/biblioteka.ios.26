@@ -1,0 +1,1418 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Liquid Glass UI — библиотека</title>
+<style>
+/* ============================================================
+ * LIQUID GLASS UI — библиотека компонентов
+ * Компоненты: Pill, Toggle, Slider
+ * ============================================================ */
+
+.lg-pill, .lg-pill *,
+.lg-track, .lg-track *,
+.slider, .slider * {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ============================================================
+ * 1) PILL
+ * ============================================================ */
+.lg-pill {
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  height: 52px;
+  padding: 0 22px;
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', Roboto, sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: #ffffff;
+  text-shadow: 0 1px 1px rgba(0,0,0,0.35);
+  background: rgba(255,255,255,0.08);
+  backdrop-filter: blur(20px) saturate(200%) brightness(1.12);
+  -webkit-backdrop-filter: blur(20px) saturate(200%) brightness(1.12);
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,0.22) inset,
+    0 0 0 0.5px rgba(0,0,0,0.1),
+    0 1px 1px 0 rgba(255,255,255,0.5) inset,
+    0 -1px 1px 0 rgba(0,0,0,0.08) inset,
+    0 12px 40px rgba(0,0,0,0.4),
+    0 3px 10px rgba(0,0,0,0.25);
+  overflow: hidden;
+  transform: translateZ(0);
+  transform-origin: center center;
+  transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  user-select: none;
+  -webkit-user-select: none;
+  will-change: transform;
+}
+.lg-pill::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(
+    160deg,
+    rgba(255,255,255,0.55) 0%,
+    rgba(255,255,255,0.18) 12%,
+    rgba(255,255,255,0) 38%,
+    rgba(255,255,255,0) 62%,
+    rgba(255,255,255,0.06) 95%,
+    rgba(255,255,255,0.14) 100%
+  );
+  z-index: 2;
+  mix-blend-mode: screen;
+}
+.lg-pill::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse 80% 40% at 50% 0%,
+    rgba(255,255,255,0.28) 0%,
+    rgba(255,255,255,0) 70%
+  );
+  z-index: 3;
+}
+.lg-pill .lens {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 4;
+  opacity: 0;
+  transition: opacity 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  background:
+    radial-gradient(
+      ellipse 60% 70% at calc(var(--lx, 50%) - 6%) calc(var(--ly, 50%) - 3%),
+      rgba(255, 80, 100, 0.55) 0%,
+      transparent 45%
+    ),
+    radial-gradient(
+      ellipse 60% 70% at calc(var(--lx, 50%) + 6%) calc(var(--ly, 50%) + 3%),
+      rgba(80, 160, 255, 0.55) 0%,
+      transparent 45%
+    ),
+    radial-gradient(
+      ellipse 65% 75% at var(--lx, 50%) var(--ly, 50%),
+      rgba(255, 255, 255, 0.55) 0%,
+      rgba(255, 255, 255, 0.1) 40%,
+      transparent 70%
+    );
+  mix-blend-mode: overlay;
+  filter: blur(3px);
+}
+.lg-pill.is-active .lens { opacity: 1; }
+.lg-pill .inner-shadow {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 5;
+  box-shadow:
+    0 0 14px 3px rgba(0, 0, 0, 0.45) inset,
+    0 0 3px 1px rgba(0, 0, 0, 0.3) inset,
+    0 1px 0 0 rgba(255, 255, 255, 0.2) inset;
+  opacity: 0;
+  transition: opacity 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.lg-pill.is-active .inner-shadow { opacity: 1; }
+.lg-pill .ripple-layer {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 6;
+}
+.lg-pill .ripple {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: radial-gradient(circle,
+    rgba(255, 255, 255, 0.85) 0%,
+    rgba(255, 255, 255, 0.35) 40%,
+    transparent 70%);
+  transform: translate(-50%, -50%) scale(0);
+  animation: lgRippleGrow 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  pointer-events: none;
+}
+@keyframes lgRippleGrow {
+  0%   { transform: translate(-50%, -50%) scale(0); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(30); opacity: 0; }
+}
+.lg-pill .content {
+  position: relative;
+  z-index: 10;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  pointer-events: none;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.lg-pill .icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.4));
+}
+.lg-pill .label {
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+}
+.lg-pill:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.7);
+  outline-offset: 4px;
+}
+
+/* ============================================================
+ * 2) TOGGLE
+ * ============================================================ */
+.lg-track {
+  position: relative;
+  width: 96px;
+  height: 40px;
+  border-radius: 20px;
+  background: rgba(120,120,128,0.35);
+  backdrop-filter: blur(18px) saturate(180%);
+  -webkit-backdrop-filter: blur(18px) saturate(180%);
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,0.18) inset,
+    0 1px 1px 0 rgba(255,255,255,0.35) inset,
+    0 8px 24px rgba(0,0,0,0.35);
+  overflow: visible;
+  cursor: pointer;
+  transition: background .2s ease;
+}
+.lg-track.on { background: rgba(52,199,89,0.85); }
+.lg-track .knob {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 56px;
+  height: 34px;
+  border-radius: 17px;
+  isolation: isolate;
+  z-index: 2;
+  cursor: pointer;
+  will-change: transform;
+  transform-origin: center center;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  outline: 1px solid transparent;
+  background: rgba(255,255,255,0.08);
+  backdrop-filter: blur(20px) saturate(200%) brightness(1.12);
+  -webkit-backdrop-filter: blur(20px) saturate(200%) brightness(1.12);
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,0.22) inset,
+    0 0 0 0.5px rgba(0,0,0,0.1),
+    0 1px 1px 0 rgba(255,255,255,0.5) inset,
+    0 -1px 1px 0 rgba(0,0,0,0.08) inset,
+    0 12px 40px rgba(0,0,0,0.4),
+    0 3px 10px rgba(0,0,0,0.25);
+  overflow: hidden;
+  transform: translateZ(0);
+}
+.lg-track .knob .gloss,
+.lg-track .knob .top-glow,
+.lg-track .knob .lens,
+.lg-track .knob .inner-shadow,
+.lg-track .knob .ripple-layer {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+.lg-track .knob .gloss {
+  position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  background: linear-gradient(160deg,
+    rgba(255,255,255,0.55) 0%, rgba(255,255,255,0.18) 12%,
+    rgba(255,255,255,0) 38%, rgba(255,255,255,0) 62%,
+    rgba(255,255,255,0.06) 95%, rgba(255,255,255,0.14) 100%);
+  z-index: 2; mix-blend-mode: screen;
+}
+.lg-track .knob .top-glow {
+  position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  background: radial-gradient(ellipse 80% 40% at 50% 0%,
+    rgba(255,255,255,0.28) 0%, rgba(255,255,255,0) 70%);
+  z-index: 3;
+}
+.lg-track .knob .lens {
+  position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  z-index: 4; opacity: 0;
+  transition: opacity 0.4s cubic-bezier(0.34,1.56,0.64,1);
+  background:
+    radial-gradient(ellipse 60% 70% at calc(var(--lx,50%) - 6%) calc(var(--ly,50%) - 3%),
+      rgba(255,80,100,0.55) 0%, transparent 45%),
+    radial-gradient(ellipse 60% 70% at calc(var(--lx,50%) + 6%) calc(var(--ly,50%) + 3%),
+      rgba(80,160,255,0.55) 0%, transparent 45%),
+    radial-gradient(ellipse 65% 75% at var(--lx,50%) var(--ly,50%),
+      rgba(255,255,255,0.55) 0%, rgba(255,255,255,0.1) 40%, transparent 70%);
+  mix-blend-mode: overlay;
+  filter: blur(3px);
+}
+.lg-track .knob.is-active .lens { opacity: 1; }
+.lg-track .knob .inner-shadow {
+  position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  z-index: 5; opacity: 0;
+  transition: opacity 0.4s cubic-bezier(0.34,1.56,0.64,1);
+  box-shadow:
+    0 0 14px 3px rgba(0,0,0,0.45) inset,
+    0 0 3px 1px rgba(0,0,0,0.3) inset,
+    0 1px 0 0 rgba(255,255,255,0.2) inset;
+}
+.lg-track .knob.is-active .inner-shadow { opacity: 1; }
+.lg-track .knob .ripple-layer {
+  position: absolute; inset: 0; border-radius: inherit; overflow: hidden;
+  pointer-events: none; z-index: 6;
+}
+.lg-track .knob .ripple {
+  position: absolute; width: 8px; height: 8px; border-radius: 50%;
+  background: radial-gradient(circle,
+    rgba(255,255,255,0.85) 0%,
+    rgba(255,255,255,0.35) 40%,
+    transparent 70%);
+  transform: translate(-50%,-50%) scale(0);
+  animation: lgRippleGrowToggle 0.7s cubic-bezier(0.22,1,0.36,1) forwards;
+  pointer-events: none;
+}
+@keyframes lgRippleGrowToggle {
+  0%   { transform: translate(-50%,-50%) scale(0); opacity: 1; }
+  100% { transform: translate(-50%,-50%) scale(20); opacity: 0; }
+}
+
+/* ============================================================
+ * 3) SLIDER
+ * ============================================================ */
+.slider-wrap{
+  display:flex;flex-direction:column;align-items:center;gap:14px;
+}
+.slider{
+  position:relative;
+  width:300px;
+  height:40px;
+  display:flex;
+  align-items:center;
+  cursor:pointer;
+  touch-action:none;
+  user-select:none;
+  -webkit-user-select:none;
+}
+.slider .track{
+  position:absolute;
+  left:0;right:0;
+  top:50%;
+  transform:translateY(-50%);
+  height:7px;
+  border-radius:999px;
+  background:rgba(120,120,128,0.30);
+  backdrop-filter:blur(6px) saturate(160%);
+  -webkit-backdrop-filter:blur(6px) saturate(160%);
+  box-shadow:
+    0 0 0 0.75px rgba(255,255,255,0.18) inset,
+    0 0.75px 0.75px 0 rgba(255,255,255,0.42) inset,
+    0 -0.75px 0.75px 0 rgba(0,0,0,0.18) inset,
+    0 5px 16px rgba(0,0,0,0.38);
+  overflow:hidden;
+}
+.slider .fill{
+  position:absolute;
+  top:0;left:0;bottom:0;
+  width:0%;
+  border-radius:999px;
+  background:linear-gradient(90deg,
+    rgba(0,136,255,0.85) 0%,
+    rgba(80,170,255,0.95) 100%);
+  box-shadow:
+    0 0 11px rgba(0,136,255,0.5),
+    0 0.6px 0 0 rgba(255,255,255,0.45) inset,
+    0 -0.6px 0 0 rgba(0,0,0,0.18) inset;
+  pointer-events:none;
+}
+.slider .knob-ambient{
+  position:absolute;
+  top:50%;
+  left:0;
+  width:46px;
+  height:28px;
+  border-radius:34% / 50%;
+  pointer-events:none;
+  z-index:1;
+  transform-origin:center center;
+  box-shadow:
+    0 32px 52px rgba(0,0,0,0.65),
+    0 18px 32px rgba(0,0,0,0.50),
+    0 6px 12px rgba(0,0,0,0.36);
+  opacity:1;
+  transition:opacity 0.25s ease, box-shadow 0.25s ease;
+}
+.slider .knob{
+  position:absolute;
+  top:50%;
+  left:0;
+  width:46px;
+  height:28px;
+  border-radius:34% / 50%;
+  isolation:isolate;
+  z-index:2;
+  cursor:grab;
+  transform-origin:center center;
+  backface-visibility:hidden;
+  -webkit-backface-visibility:hidden;
+  outline:1px solid transparent;
+
+  background:rgba(255,255,255,0.005);
+  backdrop-filter:blur(3px) brightness(1.02);
+  -webkit-backdrop-filter:blur(3px) brightness(1.02);
+
+  box-shadow:
+    0 -1px 1.5px 0 rgba(0,0,0,0.10) inset,
+    0 -1px 0 0 rgba(0,0,0,0.06),
+    0 8px 20px rgba(0,0,0,0.38),
+    0 28px 56px rgba(0,0,0,0.52),
+    0 50px 100px rgba(0,0,0,0.46);
+
+  overflow:hidden;
+  touch-action:none;
+  transition:
+    background 0.2s ease,
+    backdrop-filter 0.2s ease,
+    -webkit-backdrop-filter 0.2s ease,
+    box-shadow 0.2s ease;
+}
+.slider .knob:active{cursor:grabbing;}
+
+.slider .knob.is-active{
+  will-change:transform;
+  background:rgba(255,255,255,0.008);
+  backdrop-filter:blur(2px) url(#liquid-lens) brightness(1.05);
+  -webkit-backdrop-filter:blur(2px) url(#liquid-lens) brightness(1.05);
+  box-shadow:
+    0 -1px 1.5px 0 rgba(0,0,0,0.14) inset,
+    0 -1px 0 0 rgba(0,0,0,0.10),
+    0 10px 26px rgba(0,0,0,0.46),
+    0 36px 72px rgba(0,0,0,0.62),
+    0 60px 120px rgba(0,0,0,0.54);
+}
+@supports not (backdrop-filter: url(#liquid-lens)) {
+  .slider .knob.is-active{
+    backdrop-filter:blur(3px) brightness(1.05);
+    -webkit-backdrop-filter:blur(3px) brightness(1.05);
+  }
+}
+.slider .knob .lens,
+.slider .knob .inner-shadow,
+.slider .knob .ripple-layer{
+  backface-visibility:hidden;
+  -webkit-backface-visibility:hidden;
+}
+.slider .knob .lens{
+  position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+  z-index:5;opacity:0;
+  transition:opacity 0.3s cubic-bezier(0.34,1.56,0.64,1),
+             filter 0.2s ease;
+  background:
+    radial-gradient(ellipse 76% 88% at var(--lx,50%) var(--ly,50%),
+      rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.01) 44%, transparent 80%);
+  mix-blend-mode:overlay;
+  filter:blur(1.2px) contrast(1.20);
+}
+.slider .knob.is-active .lens{
+  opacity:1;
+  mix-blend-mode:overlay;
+  background:
+    radial-gradient(ellipse 38% 50% at calc(var(--lx,50%) - 26%) calc(var(--ly,50%) - 14%),
+      rgba(255,255,255,0.28) 0%, rgba(255,255,255,0.08) 44%, transparent 74%),
+    radial-gradient(ellipse 38% 50% at calc(var(--lx,50%) + 26%) calc(var(--ly,50%) + 14%),
+      rgba(255,255,255,0.28) 0%, rgba(255,255,255,0.08) 44%, transparent 74%),
+    radial-gradient(ellipse 90% 92% at 50% 50%,
+      transparent 62%,
+      rgba(140,190,255,0.20) 80%,
+      rgba(140,190,255,0.40) 94%,
+      transparent 100%);
+  filter:blur(0.5px) contrast(2.0) saturate(1.0);
+}
+.slider .knob .inner-shadow{
+  position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+  z-index:7;opacity:0;
+  transition:opacity 0.3s cubic-bezier(0.34,1.56,0.64,1),
+             box-shadow 0.2s ease;
+  box-shadow:
+    0 0 6px 1px rgba(0,0,0,0.10) inset,
+    0 0 2px 1px rgba(0,0,0,0.08) inset;
+}
+.slider .knob.is-active .inner-shadow{
+  opacity:0.12;
+}
+.slider .knob .ripple-layer{
+  position:absolute;inset:0;border-radius:inherit;overflow:hidden;
+  pointer-events:none;z-index:8;
+}
+.slider .knob .ripple{
+  position:absolute;width:8px;height:8px;border-radius:50%;
+  background:radial-gradient(circle,
+    rgba(255,255,255,0.85) 0%,
+    rgba(255,255,255,0.35) 40%,
+    transparent 70%);
+  transform:translate(-50%,-50%) scale(0);
+  animation:sliderRippleGrow 0.55s cubic-bezier(0.22,1,0.36,1) forwards;
+  pointer-events:none;
+}
+@keyframes sliderRippleGrow{
+  0%{transform:translate(-50%,-50%) scale(0);opacity:1;}
+  100%{transform:translate(-50%,-50%) scale(16);opacity:0;}
+}
+.slider-wrap .value-readout{
+  font-variant-numeric:tabular-nums;
+  font-size:13px;
+  letter-spacing:0.06em;
+  color:rgba(255,255,255,0.9);
+  padding:6px 14px;
+  border-radius:999px;
+  background:rgba(255,255,255,0.08);
+  backdrop-filter:blur(12px) saturate(180%);
+  -webkit-backdrop-filter:blur(12px) saturate(180%);
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,0.14) inset,
+    0 4px 14px rgba(0,0,0,0.3);
+  user-select:none;
+  -webkit-user-select:none;
+  font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Inter',sans-serif;
+}
+.slider-wrap .value-readout b{font-weight:600;color:#fff;}
+
+/* ---------- Фон для демо ---------- */
+.lg-demo-bg {
+  background:
+    radial-gradient(ellipse at 20% 20%, rgba(255,180,90,0.7) 0%, transparent 45%),
+    radial-gradient(ellipse at 80% 25%, rgba(90,160,255,0.7) 0%, transparent 45%),
+    radial-gradient(ellipse at 25% 85%, rgba(120,230,180,0.65) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 85%, rgba(255,90,180,0.6) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 50%, rgba(180,120,255,0.5) 0%, transparent 55%),
+    linear-gradient(160deg, #1a1a3a 0%, #0a0a1a 40%, #150a25 100%);
+}
+</style>
+</head>
+<body class="lg-demo-bg" style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:32px;padding:40px 20px;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Inter',sans-serif;">
+
+<!-- ============ SVG defs (liquid-lens) ============ -->
+<svg class="svg-defs" style="position:absolute;width:0;height:0;overflow:hidden;pointer-events:none;" aria-hidden="true">
+  <defs>
+    <filter id="liquid-lens" x="-35%" y="-35%" width="170%" height="170%" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="0.014 0.019" numOctaves="2" seed="7" result="noise"/>
+      <feColorMatrix in="noise" type="matrix"
+        values="1 0 0 0 0
+                1 0 0 0 0
+                0 0 0 0 0
+                0 0 0 1 0" result="hNoise"/>
+      <feDisplacementMap in="SourceGraphic" in2="hNoise" scale="85"
+                         xChannelSelector="R" yChannelSelector="G" result="displaced"/>
+      <feGaussianBlur in="displaced" stdDeviation="0.75"/>
+    </filter>
+  </defs>
+</svg>
+
+<!-- ================= PILL ================= -->
+<button class="lg-pill" id="demoPill" type="button" data-lg-pill>
+  <span class="lens"></span>
+  <span class="inner-shadow"></span>
+  <span class="ripple-layer"></span>
+  <span class="content">
+    <svg class="icon" viewBox="0 0 24 24" fill="none">
+      <path d="M12 15.5A3.5 3.5 0 1 0 12 8.5a3.5 3.5 0 0 0 0 7Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <span class="label">Настройки iOS</span>
+  </span>
+</button>
+
+<!-- ================= TOGGLE ================= -->
+<div class="lg-track" id="demoToggle" data-lg-toggle>
+  <div class="knob" tabindex="0">
+    <span class="gloss"></span>
+    <span class="top-glow"></span>
+    <span class="lens"></span>
+    <span class="inner-shadow"></span>
+    <span class="ripple-layer"></span>
+  </div>
+</div>
+
+<!-- ================= SLIDER ================= -->
+<div class="slider-wrap">
+  <div class="slider" id="demoSlider" tabindex="0" role="slider"
+       aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" data-lg-slider>
+    <div class="track">
+      <div class="fill"></div>
+    </div>
+    <div class="knob-ambient"></div>
+    <div class="knob">
+      <span class="lens"></span>
+      <span class="inner-shadow"></span>
+      <span class="ripple-layer"></span>
+    </div>
+  </div>
+  <div class="value-readout"><b>0</b> / 100</div>
+</div>
+
+<script>
+/* ============================================================
+ * LIQUID GLASS UI — библиотека
+ * ИСПРАВЛЕНО:
+ *  - Pill: tick продолжается, пока идёт анимация (needContinue без isPressed)
+ *  - Slider/Toggle: безопасный _measure + повторный замер через rAF
+ *  - Slider: TRAVEL >= 1 (защита от деления на 0)
+ *  - Pointer events на document вместо window (надёжнее)
+ * ============================================================ */
+(function (global) {
+  'use strict';
+
+  function getPoint(e) {
+    if (e.touches && e.touches.length) return { x: e.touches[0].clientX, y: e.touches[0].clientY };
+    if (e.changedTouches && e.changedTouches.length) return { x: e.changedTouches[0].clientX, y: e.changedTouches[0].clientY };
+    return { x: e.clientX, y: e.clientY };
+  }
+
+  function safeMeasure(el, fallback) {
+    var v = el ? el.offsetWidth : 0;
+    return v > 0 ? v : fallback;
+  }
+
+  /* ============================================================
+   * PILL
+   * ============================================================ */
+  function Pill(button, opts) {
+    opts = opts || {};
+    this.button = button;
+    this.onAction = opts.onAction || null;
+    var self = this;
+
+    this.state = {
+      pressProgress: 0, targetPress: 0,
+      offset: { x: 0, y: 0 }, targetOffset: { x: 0, y: 0 },
+      isPressed: false, rafId: null
+    };
+
+    this._tick = function () {
+      var s = self.state;
+      s.pressProgress += (s.targetPress - s.pressProgress) * 0.18;
+      s.offset.x += (s.targetOffset.x - s.offset.x) * 0.22;
+      s.offset.y += (s.targetOffset.y - s.offset.y) * 0.22;
+      self._apply();
+
+      var needContinue =
+        Math.abs(s.targetPress - s.pressProgress) > 0.001 ||
+        Math.abs(s.targetOffset.x - s.offset.x) > 0.1 ||
+        Math.abs(s.targetOffset.y - s.offset.y) > 0.1;
+
+      if (needContinue || s.isPressed) {
+        s.rafId = requestAnimationFrame(self._tick);
+      } else {
+        s.pressProgress = s.targetPress;
+        s.offset.x = s.targetOffset.x;
+        s.offset.y = s.targetOffset.y;
+        self._apply();
+        s.rafId = null;
+      }
+    };
+    this._start = function () { if (self.state.rafId == null) self.state.rafId = requestAnimationFrame(self._tick); };
+
+    this._onStart = function (e) {
+      self.state.isPressed = true;
+      self.state.targetPress = 1;
+      button.classList.add('is-active');
+      self._start();
+      if (navigator.vibrate) { try { navigator.vibrate(8); } catch (_) {} }
+      self._updateOffset(e);
+    };
+    this._onMove = function (e) {
+      if (!self.state.isPressed) return;
+      self._updateOffset(e);
+      self._start();
+    };
+    this._onEnd = function () {
+      if (!self.state.isPressed) return;
+      self.state.isPressed = false;
+      self.state.targetPress = 0;
+      self.state.targetOffset.x = 0;
+      self.state.targetOffset.y = 0;
+      button.classList.remove('is-active');
+      self._start();
+    };
+    this._onMouseDown = function (e) { self._onStart(e); self._spawnRipple(e); };
+    this._onTouchStart = function (e) { e.preventDefault(); self._onStart(e); self._spawnRipple(e); };
+    this._onTouchMove = function (e) { if (self.state.isPressed) { e.preventDefault(); self._onMove(e); } };
+    this._onClick = function (e) {
+      if (e.detail === 0) return;
+      if (self.onAction) self.onAction(e, self);
+    };
+
+    button.addEventListener('mousedown', this._onMouseDown);
+    global.addEventListener('mousemove', this._onMove);
+    global.addEventListener('mouseup', this._onEnd);
+    button.addEventListener('touchstart', this._onTouchStart, { passive: false });
+    global.addEventListener('touchmove', this._onTouchMove, { passive: false });
+    global.addEventListener('touchend', this._onEnd);
+    global.addEventListener('touchcancel', this._onEnd);
+    button.addEventListener('click', this._onClick);
+
+    button.style.setProperty('--lx', '50%');
+    button.style.setProperty('--ly', '50%');
+  }
+
+  Pill.prototype._apply = function () {
+    var s = this.state;
+    var button = this.button;
+    var rect = button.getBoundingClientRect();
+    var w = rect.width, h = rect.height;
+    if (!w || !h) return;
+    var minDim = Math.min(w, h), maxDim = Math.max(w, h);
+    var progress = s.pressProgress;
+    var dp = h / 52;
+    var scale = 1 + (4 * dp / h) * progress;
+    var maxOffset = minDim;
+    var tx = maxOffset * Math.tanh(0.05 * s.offset.x / maxOffset);
+    var ty = maxOffset * Math.tanh(0.05 * s.offset.y / maxOffset);
+    var maxDragScale = 4 * dp / h;
+    var angle = Math.atan2(s.offset.y, s.offset.x);
+    var wOverH = Math.min(w / h, 1);
+    var hOverW = Math.min(h / w, 1);
+    var scaleX = scale + maxDragScale * Math.abs(Math.cos(angle) * s.offset.x / maxDim) * wOverH;
+    var scaleY = scale + maxDragScale * Math.abs(Math.sin(angle) * s.offset.y / maxDim) * hOverW;
+    button.style.transform = 'translate3d(' + tx + 'px,' + ty + 'px,0) scale(' + scaleX + ',' + scaleY + ')';
+    button.style.setProperty('--lx', (50 + (s.offset.x / w) * 100) + '%');
+    button.style.setProperty('--ly', (50 + (s.offset.y / h) * 100) + '%');
+    var content = button.querySelector('.content');
+    if (content) content.style.transform = 'scale(' + (1 - 0.05 * progress) + ')';
+  };
+
+  Pill.prototype._updateOffset = function (e) {
+    var button = this.button;
+    var rect = button.getBoundingClientRect();
+    var p = getPoint(e);
+    var mx = rect.left + rect.width / 2;
+    var my = rect.top + rect.height / 2;
+    var maxOff = Math.max(rect.width, rect.height) * 0.6;
+    var dx = p.x - mx, dy = p.y - my;
+    var len = Math.hypot(dx, dy);
+    if (len > maxOff) { dx = dx / len * maxOff; dy = dy / len * maxOff; }
+    this.state.targetOffset.x = dx;
+    this.state.targetOffset.y = dy;
+  };
+
+  Pill.prototype._spawnRipple = function (e) {
+    var layer = this.button.querySelector('.ripple-layer');
+    if (!layer) return;
+    var rect = this.button.getBoundingClientRect();
+    var p = getPoint(e);
+    var r = document.createElement('span');
+    r.className = 'ripple';
+    r.style.left = (p.x - rect.left) + 'px';
+    r.style.top = (p.y - rect.top) + 'px';
+    layer.appendChild(r);
+    setTimeout(function () { r.remove(); }, 750);
+  };
+
+  /* ============================================================
+   * TOGGLE
+   * ============================================================ */
+  function Toggle(track, opts) {
+    opts = opts || {};
+    this.track = track;
+    this.knob  = track.querySelector('.knob');
+    this.onChange = opts.onChange || null;
+    var self = this;
+
+    if (!this.knob) {
+      console.warn('LiquidGlass.Toggle: .knob не найден в', track);
+      return;
+    }
+
+    this.state = {
+      pressProgress: 0, targetPress: 0,
+      offset: { x: 0, y: 0 }, targetOffset: { x: 0, y: 0 },
+      isPressed: false, rafId: null
+    };
+    this.toggle = {
+      fraction: 0, target: 0, velocity: 0,
+      dragging: false, on: !!opts.checked, dragDelta: 0
+    };
+    if (this.toggle.on) { this.toggle.fraction = 1; this.toggle.target = 1; track.classList.add('on'); }
+
+    this.SPRING = { k: 420, c: 34, m: 1 };
+    this.PAD = 3;
+    this.TRACK_W = 0; this.KNOB_W = 0; this.TRAVEL = 0;
+    this.DRAG_LIMIT = 6;
+    this.SCALE_GROW = 0.5;
+
+    this._measure();
+    // повторный замер после отрисовки
+    requestAnimationFrame(function(){ self._measure(); });
+    global.addEventListener('resize', function () { self._measure(); });
+
+    this._last = performance.now();
+    this._tick = function (now) {
+      var dt = Math.min((now - self._last) / 1000, 0.033);
+      self._last = now;
+      var t = self.toggle, s = self.state;
+      if (!t.dragging) {
+        var dx = t.fraction - t.target;
+        var a = (-self.SPRING.k * dx - self.SPRING.c * t.velocity) / self.SPRING.m;
+        t.velocity += a * dt;
+        t.fraction += t.velocity * dt;
+        if (Math.abs(t.fraction - t.target) < 1e-4 && Math.abs(t.velocity) < 1e-3) {
+          t.fraction = t.target; t.velocity = 0;
+        }
+        t.dragDelta += (0 - t.dragDelta) * Math.min(1, dt * 20);
+      }
+      s.pressProgress += (s.targetPress - s.pressProgress) * 0.18;
+      s.offset.x += (s.targetOffset.x - s.offset.x) * 0.22;
+      s.offset.y += (s.targetOffset.y - s.offset.y) * 0.22;
+      self._apply();
+      var needContinue =
+        Math.abs(s.targetPress - s.pressProgress) > 0.001 ||
+        Math.abs(s.targetOffset.x - s.offset.x) > 0.1 ||
+        Math.abs(s.targetOffset.y - s.offset.y) > 0.1 ||
+        Math.abs(t.target - t.fraction) > 1e-4 ||
+        Math.abs(t.velocity) > 1e-3 ||
+        Math.abs(t.dragDelta) > 0.1;
+      if (needContinue || s.isPressed || t.dragging) {
+        s.rafId = requestAnimationFrame(self._tick);
+      } else {
+        s.pressProgress = s.targetPress;
+        s.offset.x = s.targetOffset.x;
+        s.offset.y = s.targetOffset.y;
+        t.fraction = t.target; t.velocity = 0; t.dragDelta = 0;
+        self._apply();
+        s.rafId = null;
+      }
+    };
+    this._start = function () { if (self.state.rafId == null) self.state.rafId = requestAnimationFrame(self._tick); };
+
+    this._bind();
+    this._apply();
+  }
+
+  Toggle.prototype._measure = function () {
+    this.TRACK_W = safeMeasure(this.track, 96);
+    this.KNOB_W  = safeMeasure(this.knob, 56);
+    this.TRAVEL  = Math.max(1, this.TRACK_W - this.PAD * 2 - this.KNOB_W);
+  };
+
+  Toggle.prototype._apply = function () {
+    if (!this.knob) return;
+    var knob = this.knob;
+    var w = knob.offsetWidth || 56;
+    var h = knob.offsetHeight || 34;
+    var minDim = Math.min(w, h);
+    var s = this.state, t = this.toggle;
+    var progress = s.pressProgress;
+    var scaleXY = 1 + this.SCALE_GROW * progress;
+    var maxOffset = minDim;
+    var tx = maxOffset * Math.tanh(0.05 * s.offset.x / maxOffset);
+    var ty = maxOffset * Math.tanh(0.05 * s.offset.y / maxOffset);
+    var baseX = this.PAD + t.fraction * this.TRAVEL;
+    var finalX = baseX + t.dragDelta;
+    var minX = this.PAD - this.DRAG_LIMIT;
+    var maxX = this.PAD + this.TRAVEL + this.DRAG_LIMIT;
+    if (finalX < minX) finalX = minX;
+    if (finalX > maxX) finalX = maxX;
+    var offsetX = finalX - this.PAD;
+    knob.style.transform = 'translate3d(' + offsetX + 'px,' + ty + 'px,0) scale(' + scaleXY + ',' + scaleXY + ')';
+    knob.style.setProperty('--lx', (50 + (s.offset.x / w) * 100) + '%');
+    knob.style.setProperty('--ly', (50 + (s.offset.y / h) * 100) + '%');
+  };
+
+  Toggle.prototype._bind = function () {
+    var self = this;
+    var track = this.track;
+    var knob  = this.knob;
+    var pid = null, startX = 0, startF = 0, moved = false;
+
+    function onDown(e, isKnob) {
+      if (pid !== null) return;
+      pid = e.pointerId;
+      try { (isKnob ? knob : track).setPointerCapture(pid); } catch (_) {}
+      self.state.isPressed = true;
+      self.state.targetPress = 1;
+      knob.classList.add('is-active');
+      if (navigator.vibrate) { try { navigator.vibrate(8); } catch (_) {} }
+      self._updateOffset(e);
+      self._spawnRipple(e);
+      self.toggle.dragging = true;
+      self.toggle.velocity = 0;
+      self.toggle.dragDelta = 0;
+      startX = e.clientX;
+      startF = self.toggle.fraction;
+      moved = false;
+      self._start();
+      e.preventDefault();
+    }
+
+    knob.addEventListener('pointerdown', function (e) { onDown(e, true); });
+    track.addEventListener('pointerdown', function (e) {
+      if (e.target === knob || knob.contains(e.target)) return;
+      onDown(e, false);
+    });
+
+    function onMove(e) {
+      if (e.pointerId !== pid) return;
+      self._updateOffset(e);
+      var dx = e.clientX - startX;
+      if (Math.abs(dx) > 2) moved = true;
+      var t = self.toggle;
+      var f = startF + dx / self.TRAVEL;
+      f = Math.max(0, Math.min(1, f));
+      t.fraction = f; t.target = f; t.velocity = 0;
+      var desiredX = startF * self.TRAVEL + dx;
+      var allowedX = t.fraction * self.TRAVEL;
+      t.dragDelta = desiredX - allowedX;
+      if (t.dragDelta >  self.DRAG_LIMIT) t.dragDelta =  self.DRAG_LIMIT;
+      if (t.dragDelta < -self.DRAG_LIMIT) t.dragDelta = -self.DRAG_LIMIT;
+      var nowOn = f >= 0.5;
+      if (nowOn !== t.on) { t.on = nowOn; track.classList.toggle('on', nowOn); }
+      self._start();
+      e.preventDefault();
+    }
+
+    function finish(e) {
+      if (e.pointerId !== pid) return;
+      try { knob.releasePointerCapture(pid); } catch (_) {}
+      try { track.releasePointerCapture(pid); } catch (_) {}
+      pid = null;
+      self.state.isPressed = false;
+      self.state.targetPress = 0;
+      self.state.targetOffset.x = 0;
+      self.state.targetOffset.y = 0;
+      knob.classList.remove('is-active');
+      var t = self.toggle;
+      t.dragging = false;
+      if (moved) { t.target = t.fraction >= 0.5 ? 1 : 0; t.on = t.target === 1; }
+      else { t.on = !t.on; t.target = t.on ? 1 : 0; }
+      track.classList.toggle('on', t.on);
+      if (self.onChange) self.onChange(t.on, self);
+      self._start();
+    }
+
+    global.addEventListener('pointermove', onMove, { passive: false });
+    global.addEventListener('pointerup', finish);
+    global.addEventListener('pointercancel', finish);
+
+    knob.addEventListener('keydown', function (e) {
+      var t = self.toggle;
+      if (e.key === ' ' || e.key === 'Enter') {
+        e.preventDefault();
+        t.on = !t.on; t.target = t.on ? 1 : 0;
+        track.classList.toggle('on', t.on);
+        if (self.onChange) self.onChange(t.on, self);
+        self._start();
+      } else if (e.key === 'ArrowRight') {
+        t.on = true; t.target = 1; track.classList.add('on'); self._start();
+        if (self.onChange) self.onChange(t.on, self);
+      } else if (e.key === 'ArrowLeft') {
+        t.on = false; t.target = 0; track.classList.remove('on'); self._start();
+        if (self.onChange) self.onChange(t.on, self);
+      }
+    });
+  };
+
+  Toggle.prototype._updateOffset = function (e) {
+    var knob = this.knob;
+    var rect = knob.getBoundingClientRect();
+    var p = getPoint(e);
+    var mx = rect.left + rect.width / 2;
+    var my = rect.top + rect.height / 2;
+    var maxOff = Math.max(rect.width, rect.height) * 0.6;
+    var dx = p.x - mx, dy = p.y - my;
+    var len = Math.hypot(dx, dy);
+    if (len > maxOff) { dx = dx / len * maxOff; dy = dy / len * maxOff; }
+    this.state.targetOffset.x = dx;
+    this.state.targetOffset.y = dy;
+  };
+
+  Toggle.prototype._spawnRipple = function (e) {
+    var layer = this.knob.querySelector('.ripple-layer');
+    if (!layer) return;
+    var rect = this.knob.getBoundingClientRect();
+    var p = getPoint(e);
+    var r = document.createElement('span');
+    r.className = 'ripple';
+    r.style.left = (p.x - rect.left) + 'px';
+    r.style.top  = (p.y - rect.top) + 'px';
+    layer.appendChild(r);
+    setTimeout(function () { r.remove(); }, 750);
+  };
+
+  Toggle.prototype.set = function (v) {
+    var t = this.toggle;
+    t.on = !!v; t.target = t.on ? 1 : 0;
+    this.track.classList.toggle('on', t.on);
+    if (this.onChange) this.onChange(t.on, this);
+    this._start();
+  };
+
+  /* ============================================================
+   * SLIDER
+   * ============================================================ */
+  function Slider(sliderEl, opts) {
+    opts = opts || {};
+    this.sliderEl = sliderEl;
+    this.wrap = opts.wrap || sliderEl.closest('.slider-wrap') || sliderEl.parentElement;
+    this.onChange = opts.onChange || null;
+
+    this.knob        = sliderEl.querySelector('.knob');
+    this.knobAmbient = sliderEl.querySelector('.knob-ambient');
+    this.fill        = sliderEl.querySelector('.fill');
+    this.readout     = this.wrap ? this.wrap.querySelector('.value-readout') : null;
+
+    if (!this.knob || !this.fill) {
+      console.warn('LiquidGlass.Slider: разметка неполная', sliderEl);
+      return;
+    }
+
+    this.MIN = opts.min != null ? opts.min : 0;
+    this.MAX = opts.max != null ? opts.max : 100;
+
+    var self = this;
+
+    this.state = {
+      pressProgress:0, targetPress:0,
+      offset:{x:0,y:0}, targetOffset:{x:0,y:0},
+      isPressed:false, rafId:null
+    };
+    this.slider = {
+      fraction:0, target:0, velocity:0,
+      dragging:false, dragDelta:0
+    };
+    this.pill = {
+      stretch:0, targetStretch:0,
+      lastPointerX:0, lastTime:0, lastSpeed:0
+    };
+    this.SPRING = {k:380, c:32, m:1};
+    this.KNOB_W = 46; this.KNOB_H = 28;
+    this.SLIDER_W = 0; this.TRAVEL = 1;
+    this.DRAG_X_LIMIT = 4.5;
+    this.DRAG_Y_FACTOR = 0.035;
+    this.OFFSET_LIMIT = 0.48;
+    this.SCALE_GROW = 0.38;
+    this.PILL_SPEED_DEAD = 320;
+    this.PILL_SPEED_MAX  = 1800;
+    this.PILL_DECAY = 0.955;
+    this.PILL_STRETCH_X = 0.42;
+    this.PILL_SQUASH_Y  = 0.20;
+    this.PILL_FOLLOW = 16;
+
+    this._measure();
+    // повторный замер после отрисовки (страховка)
+    requestAnimationFrame(function(){ self._measure(); });
+    global.addEventListener('resize', function () { self._measure(); });
+
+    this._last = performance.now();
+    this._tick = function (now) {
+      var dt = Math.min((now - self._last) / 1000, 0.033);
+      self._last = now;
+      var st = self.state, sl = self.slider, pl = self.pill;
+
+      if (!sl.dragging){
+        var dx = sl.fraction - sl.target;
+        var a = (-self.SPRING.k * dx - self.SPRING.c * sl.velocity) / self.SPRING.m;
+        sl.velocity += a * dt;
+        sl.fraction += sl.velocity * dt;
+        if (Math.abs(sl.fraction - sl.target) < 5e-4 &&
+            Math.abs(sl.velocity) < 5e-3){
+          sl.fraction = sl.target;
+          sl.velocity = 0;
+        }
+        sl.dragDelta += (0 - sl.dragDelta) * Math.min(1, dt * 22);
+      }
+
+      st.pressProgress += (st.targetPress - st.pressProgress) * 0.2;
+      st.offset.x += (st.targetOffset.x - st.offset.x) * 0.24;
+      st.offset.y += (st.targetOffset.y - st.offset.y) * 0.24;
+
+      pl.stretch += (pl.targetStretch - pl.stretch) * Math.min(1, dt * self.PILL_FOLLOW);
+      pl.targetStretch *= self.PILL_DECAY;
+      if (Math.abs(pl.targetStretch) < 0.004) pl.targetStretch = 0;
+
+      self._applyKnobTransform();
+      self._applyFill();
+      self._updateReadout();
+
+      var needContinue =
+        Math.abs(st.targetPress - st.pressProgress) > 0.002 ||
+        Math.abs(st.targetOffset.x - st.offset.x) > 0.2 ||
+        Math.abs(st.targetOffset.y - st.offset.y) > 0.2 ||
+        Math.abs(sl.target - sl.fraction) > 5e-4 ||
+        Math.abs(sl.velocity) > 5e-3 ||
+        Math.abs(sl.dragDelta) > 0.15 ||
+        Math.abs(pl.stretch) > 0.004 ||
+        Math.abs(pl.targetStretch) > 0.004;
+
+      if (needContinue || st.isPressed || sl.dragging){
+        st.rafId = requestAnimationFrame(self._tick);
+      } else {
+        st.pressProgress = st.targetPress;
+        st.offset.x = st.targetOffset.x;
+        st.offset.y = st.targetOffset.y;
+        sl.fraction = sl.target;
+        sl.velocity = 0;
+        sl.dragDelta = 0;
+        pl.stretch = 0;
+        pl.targetStretch = 0;
+        self._applyKnobTransform();
+        self._applyFill();
+        self._updateReadout();
+        st.rafId = null;
+      }
+    };
+    this._start = function () { if (self.state.rafId == null) self.state.rafId = requestAnimationFrame(self._tick); };
+
+    this._bind();
+
+    var v0 = opts.value != null ? opts.value : self.MIN;
+    self.slider.fraction = self._valueToFraction(v0);
+    self.slider.target   = self.slider.fraction;
+    self._applyKnobTransform();
+    self._applyFill();
+    self._updateReadout();
+    self.state.rafId = requestAnimationFrame(self._tick);
+  }
+
+  Slider.prototype._measure = function () {
+    this.SLIDER_W = safeMeasure(this.sliderEl, 300);
+    this.KNOB_W   = safeMeasure(this.knob, 46);
+    this.TRAVEL   = Math.max(1, this.SLIDER_W - this.KNOB_W);
+  };
+
+  Slider.prototype._valueToFraction = function (v) {
+    return Math.max(0, Math.min(1, (v - this.MIN) / (this.MAX - this.MIN)));
+  };
+  Slider.prototype._fractionToValue = function (f) {
+    return Math.round(this.MIN + f * (this.MAX - this.MIN));
+  };
+  Slider.prototype.getValue = function () { return this._fractionToValue(this.slider.fraction); };
+  Slider.prototype.setValue = function (v) {
+    this.slider.target = this._valueToFraction(v);
+    this.slider.velocity = 0;
+    this._start();
+  };
+
+  Slider.prototype._updateReadout = function () {
+    if (!this.readout) return;
+    var v = this._fractionToValue(this.slider.fraction);
+    this.readout.innerHTML = '<b>' + v + '</b> / ' + this.MAX;
+    this.sliderEl.setAttribute('aria-valuenow', String(v));
+  };
+
+  Slider.prototype._applyFill = function () {
+    if (!this.fill) return;
+    var knobCenter = this.KNOB_W / 2 + this.slider.fraction * this.TRAVEL;
+    var pct = this.SLIDER_W > 0 ? (knobCenter / this.SLIDER_W) * 100 : 0;
+    if (this.slider.fraction <= 0.0005) pct = 0;
+    if (this.slider.fraction >= 0.9995) pct = 100;
+    this.fill.style.width = Math.max(0, Math.min(100, pct)) + '%';
+  };
+
+  Slider.prototype._applyKnobTransform = function () {
+    if (!this.knob) return;
+    var w = this.KNOB_W, h = this.KNOB_H;
+    var minDim = Math.min(w, h);
+    var progress = this.state.pressProgress;
+
+    var baseScaleX = 1 + this.SCALE_GROW * progress;
+    var baseScaleY = 1 + this.SCALE_GROW * progress;
+
+    var s = this.pill.stretch * progress;
+    var absS = Math.abs(s);
+
+    var scaleX = baseScaleX + absS * this.PILL_STRETCH_X;
+    var scaleY = baseScaleY - absS * this.PILL_SQUASH_Y;
+
+    var originX = 50 + s * 30;
+    var pivotShift = s * 3.0;
+
+    var maxOffset = minDim;
+    var ty = maxOffset * Math.tanh(this.DRAG_Y_FACTOR * this.state.offset.y / maxOffset);
+
+    var baseX = this.slider.fraction * this.TRAVEL;
+    var finalX = baseX + this.slider.dragDelta;
+
+    finalX = Math.max(0, Math.min(this.TRAVEL, finalX));
+    if (this.slider.fraction <= 0.0005) finalX = 0;
+    if (this.slider.fraction >= 0.9995) finalX = this.TRAVEL;
+
+    if (finalX <= 0)           pivotShift = Math.max(0, pivotShift);
+    if (finalX >= this.TRAVEL) pivotShift = Math.min(0, pivotShift);
+
+    this.knob.style.transformOrigin = originX + '% 50%';
+    this.knob.style.transform =
+      'translate3d(' + (finalX + pivotShift) + 'px,' + (ty - this.KNOB_H / 2) + 'px,0) ' +
+      'scale(' + scaleX + ',' + scaleY + ')';
+
+    if (this.knobAmbient){
+      this.knobAmbient.style.transform =
+        'translate3d(' + (finalX + pivotShift) + 'px,' + (-this.KNOB_H / 2) + 'px,0)';
+      this.knobAmbient.style.opacity = (0.85 + 0.15 * progress).toFixed(3);
+    }
+
+    this.knob.style.setProperty('--lx', (50 + (this.state.offset.x / w) * 100) + '%');
+    this.knob.style.setProperty('--ly', (50 + (this.state.offset.y / h) * 100) + '%');
+  };
+
+  Slider.prototype._bind = function () {
+    var self = this;
+    var sliderEl = this.sliderEl;
+    var knob = this.knob;
+
+    var knobRectCache = null;
+    var sliderRectCache = null;
+
+    function updateOffset(e){
+      var rect = knobRectCache || knob.getBoundingClientRect();
+      var p = getPoint(e);
+      var mx = rect.left + rect.width / 2;
+      var my = rect.top + rect.height / 2;
+      var maxOff = Math.max(rect.width, rect.height) * self.OFFSET_LIMIT;
+      var dx = p.x - mx, dy = p.y - my;
+      var len = Math.hypot(dx, dy);
+      if (len > maxOff && len > 0){ dx = dx / len * maxOff; dy = dy / len * maxOff; }
+      self.state.targetOffset.x = dx;
+      self.state.targetOffset.y = dy;
+    }
+
+    function spawnRipple(e){
+      var layer = knob.querySelector('.ripple-layer');
+      if (!layer) return;
+      var rect = knobRectCache || knob.getBoundingClientRect();
+      var p = getPoint(e);
+      var r = document.createElement('span');
+      r.className = 'ripple';
+      r.style.left = (p.x - rect.left) + 'px';
+      r.style.top  = (p.y - rect.top) + 'px';
+      layer.appendChild(r);
+      setTimeout(function(){ if (r.parentNode) r.parentNode.removeChild(r); }, 600);
+    }
+
+    function clientXToFraction(clientX){
+      var rect = sliderRectCache || sliderEl.getBoundingClientRect();
+      var x = clientX - rect.left - self.KNOB_W / 2;
+      return Math.max(0, Math.min(1, x / self.TRAVEL));
+    }
+
+    var activePointerId = null;
+    var startPointerX = 0;
+    var startFraction = 0;
+
+    function onPointerDown(e){
+      if (activePointerId !== null) return;
+      activePointerId = e.pointerId;
+      try { sliderEl.setPointerCapture(activePointerId); } catch (_) {}
+
+      knobRectCache = knob.getBoundingClientRect();
+      sliderRectCache = sliderEl.getBoundingClientRect();
+
+      self.state.isPressed = true;
+      self.state.targetPress = 1;
+      knob.classList.add('is-active');
+      if (navigator.vibrate){ try { navigator.vibrate(8); } catch (_) {} }
+
+      updateOffset(e);
+
+      var onKnob = (e.target === knob || knob.contains(e.target));
+      if (onKnob){
+        spawnRipple(e);
+      } else {
+        var f = clientXToFraction(e.clientX);
+        self.slider.target = f;
+        self.slider.velocity = 0;
+        self.slider.dragDelta = 0;
+      }
+
+      startPointerX = e.clientX;
+      startFraction = self.slider.fraction;
+
+      self.pill.lastPointerX = e.clientX;
+      self.pill.lastTime = performance.now();
+      self.pill.lastSpeed = 0;
+      self.pill.stretch = 0;
+      self.pill.targetStretch = 0;
+
+      self.slider.dragging = true;
+      self._start();
+      e.preventDefault();
+    }
+
+    function onPointerMove(e){
+      if (e.pointerId !== activePointerId) return;
+      updateOffset(e);
+
+      var p = getPoint(e);
+      var dx = p.x - startPointerX;
+
+      var f = startFraction + dx / self.TRAVEL;
+      f = Math.max(0, Math.min(1, f));
+
+      self.slider.fraction = f;
+      self.slider.target = f;
+      self.slider.velocity = 0;
+
+      var desiredX = startFraction * self.TRAVEL + dx;
+      var allowedX = f * self.TRAVEL;
+      var d = desiredX - allowedX;
+      if (d > self.DRAG_X_LIMIT) d = self.DRAG_X_LIMIT;
+      if (d < -self.DRAG_X_LIMIT) d = -self.DRAG_X_LIMIT;
+      self.slider.dragDelta = d;
+
+      var now = performance.now();
+      var dtMs = now - self.pill.lastTime;
+      if (dtMs < 1) dtMs = 1;
+
+      var instDx = p.x - self.pill.lastPointerX;
+      var speed = (instDx / dtMs) * 1000;
+      self.pill.lastPointerX = p.x;
+      self.pill.lastTime = now;
+      self.pill.lastSpeed = speed;
+
+      var absSpeed = Math.abs(speed);
+
+      var targetMagnitude = 0;
+      if (absSpeed > self.PILL_SPEED_DEAD){
+        var t = (absSpeed - self.PILL_SPEED_DEAD) / (self.PILL_SPEED_MAX - self.PILL_SPEED_DEAD);
+        if (t > 1) t = 1;
+        targetMagnitude = Math.tanh(t * 2.4) / Math.tanh(2.4);
+      }
+
+      var dir = speed >= 0 ? 1 : -1;
+      var newTarget = dir * targetMagnitude;
+
+      self.pill.targetStretch = self.pill.targetStretch * 0.5 + newTarget * 0.5;
+
+      if (self.pill.targetStretch >  1) self.pill.targetStretch =  1;
+      if (self.pill.targetStretch < -1) self.pill.targetStretch = -1;
+
+      self._start();
+      e.preventDefault();
+    }
+
+    function onPointerUp(e){
+      if (e.pointerId !== activePointerId) return;
+      try { sliderEl.releasePointerCapture(activePointerId); } catch (_) {}
+      activePointerId = null;
+
+      self.state.isPressed = false;
+      self.state.targetPress = 0;
+      self.state.targetOffset.x = 0;
+      self.state.targetOffset.y = 0;
+      knob.classList.remove('is-active');
+
+      self.slider.dragging = false;
+
+      var v = self._fractionToValue(self.slider.fraction);
+      self.slider.target = self._valueToFraction(v);
+
+      if (self.onChange) self.onChange(v, self);
+      self._start();
+    }
+
+    sliderEl.addEventListener('pointerdown', onPointerDown);
+    global.addEventListener('pointermove', onPointerMove, {passive:false});
+    global.addEventListener('pointerup', onPointerUp);
+    global.addEventListener('pointercancel', onPointerUp);
+
+    global.addEventListener('resize', function(){
+      knobRectCache = null;
+      sliderRectCache = null;
+    });
+
+    sliderEl.addEventListener('keydown', function(e){
+      var v = self._fractionToValue(self.slider.fraction);
+      var step = e.shiftKey ? 10 : 1;
+      var handled = true;
+      if (e.key === 'ArrowRight')      v = Math.min(self.MAX, v + step);
+      else if (e.key === 'ArrowLeft')  v = Math.max(self.MIN, v - step);
+      else if (e.key === 'ArrowUp')    v = Math.min(self.MAX, v + step);
+      else if (e.key === 'ArrowDown')  v = Math.max(self.MIN, v - step);
+      else if (e.key === 'PageUp')     v = Math.min(self.MAX, v + 10);
+      else if (e.key === 'PageDown')   v = Math.max(self.MIN, v - 10);
+      else if (e.key === 'Home')       v = self.MIN;
+      else if (e.key === 'End')        v = self.MAX;
+      else handled = false;
+
+      if (handled){
+        e.preventDefault();
+        self.slider.dragging = false;
+        self.slider.target = self._valueToFraction(v);
+        self.slider.velocity = 0;
+        if (self.onChange) self.onChange(v, self);
+        self._start();
+      }
+    });
+  };
+
+  /* ============================================================
+   * Публичный API
+   * ============================================================ */
+  var LiquidGlass = {
+    Pill: Pill,
+    Toggle: Toggle,
+    Slider: Slider,
+
+    init: function (root) {
+      root = root || document;
+      var out = { pills: [], toggles: [], sliders: [] };
+
+      root.querySelectorAll('[data-lg-pill]').forEach(function (el) {
+        out.pills.push(new Pill(el, {}));
+      });
+
+      root.querySelectorAll('[data-lg-toggle]').forEach(function (el) {
+        out.toggles.push(new Toggle(el, {}));
+      });
+
+      root.querySelectorAll('[data-lg-slider]').forEach(function (el) {
+        out.sliders.push(new Slider(el, {
+          wrap: el.closest('.slider-wrap') || el.parentElement
+        }));
+      });
+
+      return out;
+    }
+  };
+
+  global.LiquidGlass = LiquidGlass;
+})(window);
+
+/* ============================================================
+ * ДЕМО
+ * ============================================================ */
+(function () {
+  // init после полной загрузки, чтобы размеры посчитались
+  function boot() {
+    var inst = LiquidGlass.init(document);
+    console.log('LiquidGlass инициализирован:', inst);
+  }
+  if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    setTimeout(boot, 0);
+  } else {
+    window.addEventListener('DOMContentLoaded', boot);
+  }
+})();
+</script>
+</body>
+</html>
